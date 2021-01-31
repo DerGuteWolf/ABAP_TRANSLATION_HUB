@@ -7,7 +7,7 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 ## Report Parameters
 - Source Language: Original Language of your ABAP Objects and Source Language of the Translation Hub Project (Needs to Match!)
 - Target Languages: All or a Subset of the Target Languages of the Translation Hub Project (All Languages need to exist in your SAP System!)
-- Object List Name: The most current Object List with this Name is used as the Source (ie eg which was created from the last RS_LXE_EVALUATION_SCHEDULE run)
+- Object List Name: The most current Object List with this Name is used as the Source (ie eg which was created from the last `RS_LXE_EVALUATION_SCHEDULE` run)
 - Server Directory: Directory on the Application Server to use for Intermediate Files (Files will be Automatically Deleted after Usage, so no Accumulation of Files in this Directory), needs to be Allowed for Translation Externalization Usage, in Transaction `FILE` "Logical File Name Definition, Cross Client" `BC_T9N_EXT` maps by default to Logical Path `TRANSLATION`, which you need to assign a  Physical Path for the Operation System of the Application Server (also in Transaction `FILE`)
 - Destination: HTTP Destination (ie Type `G`) to Translation Hub Tenant
   - As Hostname use (cf also [Building Base URL of SAP Translation Hub](https://help.sap.com/viewer/ed6ce7a29bdd42169f5f0d7868bce6eb/Cloud/en-US/3a011fba82644259a2cc3c919863f4b4.html) )
