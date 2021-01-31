@@ -22,7 +22,7 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 - Project ID: The <translation project ID> of a File Translation Project for abap xliff style properties files
 
 ## Usage
-Intended to be run as a job with a variant after a RS_LXE_EVALUATION_SCHEDULE job has finished his work (This Job starts several internal jobs, so unfortuntly "after" scheduling is not possible) but can also be run interactivly.
+Intended to be run as a job with a variant after a RS_LXE_EVALUATION_SCHEDULE job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not possible, use some start time difference) but can also be run interactivly.
 
 ## How to obtain support
 In case you need any support, please create a GitHub issue.
