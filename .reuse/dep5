@@ -1,0 +1,8 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ABAP_TRANSLATION_HUB
+Upstream-Contact: Wolfgang Röckelein <mail@wolfgangroeckelein.de>
+Source: https://github.com/DerGuteWolf/ABAP_TRANSLATION_HUB
+
+Files: *.*
+Copyright: 2021 Wolfgang Röckelein
+License: Apache-2.0
