@@ -19,6 +19,7 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
   - Basic Authentication with a S-User with Sufficient Priviledges in the Translation Hub Tenant
   - SSL set to Active
   - Use a Cert List which Contains an Appropriate Root CA for SAP BTP (formally known as SCP)
+  - You might want to restrict the Usage of this Destination with the Help of an "Authorization for Destination" Entry, since it Contains Credentials
 - Project ID: The <translation project ID> of a File Translation Project for abap xliff style properties files
 
 ## Usage
