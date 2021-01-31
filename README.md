@@ -10,19 +10,19 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 - Object List Name: The most current Object List with this Name is used as the Source (ie eg which was created from the last `RS_LXE_EVALUATION_SCHEDULE` run)
 - Server Directory: Directory on the Application Server to use for Intermediate Files (Files will be Automatically Deleted after Usage, so no Accumulation of Files in this Directory), needs to be Allowed for Translation Externalization Usage, in Transaction `FILE` "Logical File Name Definition, Cross Client" `BC_T9N_EXT` maps by default to Logical Path `TRANSLATION`, which you need to assign a  Physical Path for the Operation System of the Application Server (also in Transaction `FILE`)
 - Destination: HTTP Destination (ie Type `G`) to Translation Hub Tenant
-  - As Hostname use (cf also [Building Base URL of SAP Translation Hub](https://help.sap.com/viewer/ed6ce7a29bdd42169f5f0d7868bce6eb/Cloud/en-US/3a011fba82644259a2cc3c919863f4b4.html) )
-    - For Enterprise accounts `sap<technical name of provider subaccount>-<technical name of subscription subaccount>.<region host>`
+  - As Hostname (cf also [Building Base URL of SAP Translation Hub](https://help.sap.com/viewer/ed6ce7a29bdd42169f5f0d7868bce6eb/Cloud/en-US/3a011fba82644259a2cc3c919863f4b4.html) )
+    - For Enterprise accounts use `sap<technical name of provider subaccount>-<technical name of subscription subaccount>.<region host>`
     - For Trial accounts use `saptranslation-<technical name of subaccount>.hanatrial.ondemand.com`
   - As Service No/Port use 443
   - No Path Prefix!
   - Proxy as Needed
-  - Basic Authentication with a S-User with Sufficient Priviledges in the Translation Bub Tenant
+  - Basic Authentication with a S-User with Sufficient Priviledges in the Translation Hub Tenant
   - SSL set to Active
   - Use a Cert List which Contains an Appropriate Root CA for SAP BTP (formally known as SCP)
 - Project ID: The <translation project ID> of a File Translation Project for abap xliff style properties files
 
 ## Usage
-Intended to be run as a job with a variant after a RS_LXE_EVALUATION_SCHEDULE job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not possible, use some start time difference) but can also be run interactivly.
+Intended to be run as a job with a variant after a `RS_LXE_EVALUATION_SCHEDULE` job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not possible, use some start time differences) but can also be run interactivly.
 
 ## How to obtain support
 In case you need any support, please create a GitHub issue.
