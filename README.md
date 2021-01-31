@@ -25,6 +25,8 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 ## Usage
 Intended to be run as a job with a variant after a `RS_LXE_EVALUATION_SCHEDULE` job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not possible, use some start time differences) but can also be run interactivly.
 
+Should run on a NetWeaver 7.40 and higher, needs /UI2/CL_JSON eg from [2904870 - /UI2/CL_JSON corrections - PL14](https://launchpad.support.sap.com/#/notes/2904870) which needs a SAP_UI version which is in maintenance
+
 ## How to obtain support
 In case you need any support, please create a GitHub issue.
 
