@@ -38,6 +38,7 @@ REPORT zpush_pull_translation_hub.
 
 START-OF-SELECTION.
   DATA output_text TYPE string.
+  DATA(dir_seperator) = COND #( WHEN sy-opsys(3) = 'Win' THEN '\' ELSE '/' ).
 
   LOOP AT t_langs ASSIGNING FIELD-SYMBOL(<language_range>).
     APPEND <language_range>-low TO target_languages.
@@ -132,7 +133,7 @@ START-OF-SELECTION.
 
    cl_lxe_textext_log=>update_id_header_export( export_id ).
 
-  DATA(file_name) = |{ server_directory }/{ source_language }_{ target_languages[ 1 ] }_S_{ export_id }-00001.xlf|.
+  DATA(file_name) = |{ server_directory }{ dir_seperator }{ source_language }_{ target_languages[ 1 ] }_S_{ export_id }-00001.xlf|.
 
   output_text = |Export Succesful|. PERFORM output USING output_text.
 * Step 4: Read File to memory
@@ -283,7 +284,7 @@ START-OF-SELECTION.
     zip->get( EXPORTING name = <file_entry>-name IMPORTING content = DATA(file_entry_content) ).
     DATA(language) = CONV lxeisolang( replace( val = replace( val = <file_entry>-name sub = |sth/{ source_language }_| with = '' ) sub = '_S_000001-00001.xlf' with = '' ) ).
     IF line_exists( target_languages[ table_line = language ] ).
-      file_name = replace( val = replace( val = <file_entry>-name sub = 'sth' with = server_directory ) sub = '000001' with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
+      file_name = replace( val = replace( val = <file_entry>-name sub = 'sth/' with = server_directory && dir_seperator ) sub = '000001' with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
       OPEN DATASET file_name FOR OUTPUT IN BINARY MODE MESSAGE mess.
       IF sy-subrc = 8.
         MESSAGE mess TYPE 'E'.
