@@ -11,8 +11,8 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 - Server Directory: Directory on the Application Server to use for Intermediate Files (Files will be Automatically Deleted after Usage, so no Accumulation of Files in this Directory), needs to be Allowed for Translation Externalization Usage, in Transaction `FILE` "Logical File Name Definition, Cross Client" `BC_T9N_EXT` maps by default to Logical Path `TRANSLATION`, which you need to assign a  Physical Path for the Operation System of the Application Server (also in Transaction `FILE`)
 - Destination: HTTP Destination (ie Type `G`) to Translation Hub Tenant
   - As Hostname (cf also [Building Base URL of SAP Translation Hub](https://help.sap.com/viewer/ed6ce7a29bdd42169f5f0d7868bce6eb/Cloud/en-US/3a011fba82644259a2cc3c919863f4b4.html) )
-    - For Enterprise accounts use `sap<technical name of provider subaccount>-<technical name of subscription subaccount>.<region host>`
-    - For Trial accounts use `saptranslation-<technical name of subaccount>.hanatrial.ondemand.com`
+    - for Enterprise accounts use `sap<technical name of provider subaccount>-<technical name of subscription subaccount>.<region host>`
+    - for Trial accounts use `saptranslation-<technical name of subaccount>.hanatrial.ondemand.com`
   - As Service No/Port use 443
   - No Path Prefix!
   - Proxy as Needed
@@ -20,7 +20,8 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
   - SSL set to Active
   - Use a Cert List which Contains an Appropriate Root CA for SAP BTP (formally known as SCP)
   - You might want to restrict the Usage of this Destination with the Help of an "Authorization for Destination" Entry, since it Contains Credentials
-- Project ID: The <translation project ID> of a File Translation Project for abap xliff style properties files
+  - HTTP 1.1 and Compression for Both Directions should be Actived, All Cookies Need to be Accepted
+- Project ID: The <translation project ID> of a File Translation Project for ABAP xliff Style Properties Files
 
 ## Usage
 Intended to be run as a job with a variant after a `RS_LXE_EVALUATION_SCHEDULE` job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not possible, use some start time differences) but can also be run interactivly.
