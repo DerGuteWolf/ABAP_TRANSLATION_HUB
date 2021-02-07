@@ -25,6 +25,12 @@
     </item>
     <item>
      <ID>S</ID>
+     <KEY>S_EXT_ID</KEY>
+     <ENTRY>ExternalID in Transl.Hub Proj.</ENTRY>
+     <LENGTH>38</LENGTH>
+    </item>
+    <item>
+     <ID>S</ID>
      <KEY>S_LANG</KEY>
      <ENTRY>Source Translation Language</ENTRY>
      <LENGTH>35</LENGTH>

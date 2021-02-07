@@ -14,6 +14,7 @@ REPORT zpush_pull_translation_hub.
   PARAMETERS s_srvdir TYPE string OBLIGATORY LOWER CASE.
   PARAMETERS s_dest TYPE rfcdest OBLIGATORY MATCHCODE OBJECT wdhc_kw_http.
   PARAMETERS s_proj TYPE string OBLIGATORY LOWER CASE.
+  PARAMETERS s_ext_id TYPE lxeexpid OBLIGATORY.
 
   AT SELECTION-SCREEN ON VALUE-REQUEST FOR s_lang.
     CALL FUNCTION 'LXE_T002_SELECT_LANGUAGE_F4'
@@ -47,7 +48,8 @@ START-OF-SELECTION.
   DATA(object_list_name) = s_liname.
   DATA(server_directory) = s_srvdir.
   DATA(destination) = s_dest.
-  DATA(projectID) = s_proj.
+  DATA(project_id) = s_proj.
+  DATA(external_id_in_project) = s_ext_id.
 
 * Step 0: Prechecks
 
@@ -63,15 +65,16 @@ START-OF-SELECTION.
     ENDIF.
   ENDLOOP.
 
-  DATA(base_path) = |/translationhub/api/v2/fileProjects/{ projectID }|.
-  DATA(fileNameInTransHub) = |{ source_language }_{ target_languages[ 1 ] }_S_000001-00001.xlf|.
+  DATA(base_path) = |/translationhub/api/v2/fileProjects/{ project_id }|.
+  DATA(fileNameInTransHub) = |{ source_language }_{ target_languages[ 1 ] }_S_{ external_id_in_project ALPHA = IN }-00001.xlf|.
 
   WRITE / |Source Language used: { source_language }|.
   WRITE / |Target Languages used: { REDUCE string( INIT langs = `` sep = `` FOR lang IN target_languages NEXT langs = |{ langs }{ sep }{ lang }| sep = `, ` ) }|.
   WRITE / |Object List Name used: { object_list_name }|.
   WRITE / |Server Directory used: { server_directory }|.
   WRITE / |RFC HTTP Destination used: { destination }|.
-  WRITE / |Project ID used: { projectID }|.
+  WRITE / |Project ID used: { project_id }|.
+  WRITE / |Fie Name in Project used: { fileNameInTransHub }|.
 
 * Step 1: Find last Object List Entry ( as generated per Report )
 
@@ -81,7 +84,7 @@ START-OF-SELECTION.
     MESSAGE 'Could Not Find Object List' TYPE 'E'.
   ENDIF.
 
-  output_text = |Using Object List Number: { object_list[ 1 ]-objlist }|. PERFORM output USING output_text.
+  output_text = |Using Current Object List Number: { object_list[ 1 ]-objlist }|. PERFORM output USING output_text.
 
 * Step 2: Get new Text Externalization ID
 
@@ -104,7 +107,8 @@ START-OF-SELECTION.
     MESSAGE 'Error getting new export ID' TYPE 'E'.
   ENDIF.
 
-  output_text = |Using Externalization Number: { export_id }|. PERFORM output USING output_text.
+  output_text = |Using Current Externalization ID: { export_id }|. PERFORM output USING output_text.
+
 * Step 3: Export to server file
 
   TRY.
@@ -136,6 +140,7 @@ START-OF-SELECTION.
   DATA(file_name) = |{ server_directory }{ dir_seperator }{ source_language }_{ target_languages[ 1 ] }_S_{ export_id }-00001.xlf|.
 
   output_text = |Export Succesful|. PERFORM output USING output_text.
+
 * Step 4: Read File to memory
 
   DATA mess TYPE string.
@@ -155,6 +160,7 @@ START-OF-SELECTION.
   CLOSE DATASET file_name.
 
   output_text = |Read File Succesful|. PERFORM output USING output_text.
+
 * Step 5: Delete File
 
   DELETE DATASET file_name.
@@ -163,6 +169,7 @@ START-OF-SELECTION.
   endif.
 
   output_text = |Delete File Succesful|. PERFORM output USING output_text.
+
 * Step 6: Establish Communication with Translation Hub
 
   cl_http_client=>create_by_destination(
@@ -200,6 +207,7 @@ START-OF-SELECTION.
   rest_client->if_rest_client~set_request_header( iv_name = 'X-CSRF-Token' iv_value = csrf_token ).
 
   output_text = |Translation Hub Contact Succesful|. PERFORM output USING output_text.
+
 * Step 6: Upload to Translation Hub
 
   cl_http_utility=>set_request_uri( request = http_client->request uri = |{ base_path }/files| ).
@@ -221,6 +229,7 @@ START-OF-SELECTION.
   /ui2/cl_data_access=>create( ir_data = response_upload iv_component = `id`)->value( IMPORTING ev_data = file_id ).
 
   output_text = |Translation Hub Upload Succesful|. PERFORM output USING output_text.
+
 * Step 7: Start Translation and wait for finish
 
   " Clear data from previous request, otherwise the following request will always fail
@@ -260,6 +269,7 @@ START-OF-SELECTION.
   ENDDO.
 
   output_text = |Translation Hub Execution Finish Succesful|. PERFORM output USING output_text.
+
 * Step 8: Download zip from Translation Hub
 
   cl_http_utility=>set_request_uri( request = http_client->request uri = |{ base_path }/files/{ file_id }/content| ).
@@ -273,6 +283,7 @@ START-OF-SELECTION.
   rest_client->if_rest_client~close( ).
 
   output_text = |Translation Hub Download Succesful|. PERFORM output USING output_text.
+
 * Step 9: Unzip
 
   DATA zip_file_names TYPE string_table.
@@ -282,9 +293,9 @@ START-OF-SELECTION.
   zip->load( zip_content ).
   LOOP AT zip->files ASSIGNING FIELD-SYMBOL(<file_entry>).
     zip->get( EXPORTING name = <file_entry>-name IMPORTING content = DATA(file_entry_content) ).
-    DATA(language) = CONV lxeisolang( replace( val = replace( val = <file_entry>-name sub = |sth/{ source_language }_| with = '' ) sub = '_S_000001-00001.xlf' with = '' ) ).
+    DATA(language) = CONV lxeisolang( replace( val = replace( val = <file_entry>-name sub = |sth/{ source_language }_| with = '' ) sub = |_S_{ external_id_in_project ALPHA = IN }-00001.xlf| with = '' ) ).
     IF line_exists( target_languages[ table_line = language ] ).
-      file_name = replace( val = replace( val = <file_entry>-name sub = 'sth/' with = server_directory && dir_seperator ) sub = '000001' with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
+      file_name = replace( val = replace( val = <file_entry>-name sub = 'sth/' with = server_directory && dir_seperator ) sub = |{ external_id_in_project ALPHA = IN }| with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
       OPEN DATASET file_name FOR OUTPUT IN BINARY MODE MESSAGE mess.
       IF sy-subrc = 8.
         MESSAGE mess TYPE 'E'.
@@ -294,13 +305,14 @@ START-OF-SELECTION.
       APPEND file_name TO zip_file_names.
       APPEND language TO zip_languages.
     ELSE.
-      MESSAGE 'Language from Hub not in the Target Languages' TYPE 'W'.
+      MESSAGE |Language '{ language }' from Hub not in the Target Languages| TYPE 'W'.
     ENDIF.
   ENDLOOP.
 
   FREE zip.
 
   output_text = |Creating { LINES( zip_file_names ) } Translation Files Succesful|. PERFORM output USING output_text.
+
 * Step 10: Import Files
 
   cl_lxe_textext_log=>update_id_header_import_param(
@@ -343,12 +355,13 @@ START-OF-SELECTION.
   ENDTRY.
 
   output_text = |Import Succesful|. PERFORM output USING output_text.
+
 * Step 11: Delete Files
 
   LOOP AT zip_file_names INTO file_name.
     DELETE DATASET file_name.
     IF sy-subrc <> 0.
-       MESSAGE 'Delete File Failed' TYPE 'E'.
+       MESSAGE |Delete File '{ file_name }' Failed| TYPE 'E'.
     ENDIF.
   ENDLOOP.
 
