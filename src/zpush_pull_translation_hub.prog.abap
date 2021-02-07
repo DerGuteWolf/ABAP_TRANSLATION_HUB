@@ -74,7 +74,7 @@ START-OF-SELECTION.
   WRITE / |Server Directory used: { server_directory }|.
   WRITE / |RFC HTTP Destination used: { destination }|.
   WRITE / |Project ID used: { project_id }|.
-  WRITE / |Fie Name in Project used: { fileNameInTransHub }|.
+  WRITE / |File Name in Project used: { fileNameInTransHub }|.
 
 * Step 1: Find last Object List Entry ( as generated per Report )
 
