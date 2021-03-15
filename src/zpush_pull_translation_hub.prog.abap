@@ -305,7 +305,7 @@ START-OF-SELECTION.
       APPEND file_name TO zip_file_names.
       APPEND language TO zip_languages.
     ELSE.
-      MESSAGE |Language '{ language }' from Hub not in the Target Languages| TYPE 'W'.
+      output_text = |Language '{ language }' from Hub not in the Target Languages|. PERFORM output USING output_text.
     ENDIF.
   ENDLOOP.
 
