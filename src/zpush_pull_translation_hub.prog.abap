@@ -61,6 +61,7 @@ START-OF-SELECTION.
         language_not_in_cp = 1
         unknown            = 2.
     IF sy-subrc <> 0.
+      output_text = |Target or Source Language not in the System|. PERFORM output USING output_text.
       MESSAGE 'Target or Source Language not in the System' TYPE 'E'.
     ENDIF.
   ENDLOOP.
@@ -81,6 +82,7 @@ START-OF-SELECTION.
   SELECT objlist FROM lxe_objl WHERE type = 'N' AND text = @object_list_name AND stat = 'X' ORDER BY objlist DESCENDING INTO TABLE @DATA(object_list) UP TO 1 ROWS.
 
   IF sy-subrc <> 0.
+    output_text = |Could Not Find Object List|. PERFORM output USING output_text.
     MESSAGE 'Could Not Find Object List' TYPE 'E'.
   ENDIF.
 
@@ -104,6 +106,7 @@ START-OF-SELECTION.
       error = 1
   ).
   IF sy-subrc <> 0 OR export_id IS INITIAL.
+    output_text = |Error getting new export ID|. PERFORM output USING output_text.
     MESSAGE 'Error getting new export ID' TYPE 'E'.
   ENDIF.
 
@@ -132,6 +135,7 @@ START-OF-SELECTION.
               i_rlang            = ''
       )->export( ).
     CATCH cx_lxe_textext INTO DATA(textext_export_exception).
+      output_text = |Export Failure { textext_export_exception->get_text( ) }|. PERFORM output USING output_text.
       MESSAGE 'Export Failure' TYPE 'E'.
   ENDTRY.
 
@@ -147,28 +151,37 @@ START-OF-SELECTION.
 
   OPEN DATASET file_name FOR INPUT IN BINARY MODE MESSAGE mess.
   IF sy-subrc = 8.
+     output_text = |{ mess }|. PERFORM output USING output_text.
     MESSAGE mess TYPE 'E'.
   ENDIF.
 
   DATA content TYPE xstring.
 
   READ DATASET file_name INTO content.
-  if sy-subrc <> 0.
+  IF sy-subrc <> 0.
+     output_text = |File too Big|. PERFORM output USING output_text.
      MESSAGE 'File too Big' TYPE 'E'.
-  endif.
+  ENDIF.
 
   CLOSE DATASET file_name.
 
-  output_text = |Read File Succesful|. PERFORM output USING output_text.
+  DATA(filelength) = xstrlen( content ).
+  output_text = |Read File Succesful, File Length { filelength }|. PERFORM output USING output_text.
 
 * Step 5: Delete File
 
   DELETE DATASET file_name.
-  if sy-subrc <> 0.
+  IF sy-subrc <> 0.
+     output_text = |Delete File Failed|. PERFORM output USING output_text.
      MESSAGE 'Delete File Failed' TYPE 'E'.
-  endif.
+  ENDIF.
 
   output_text = |Delete File Succesful|. PERFORM output USING output_text.
+
+  IF filelength = 0.
+    output_text = |File Empty|. PERFORM output USING output_text.
+    MESSAGE 'File Empty' TYPE 'E'.
+  ENDIF.
 
 * Step 6: Establish Communication with Translation Hub
 
@@ -186,6 +199,7 @@ START-OF-SELECTION.
       OTHERS             = 4 "#EC NUMBER_OK
   ).
   IF sy-subrc <> 0.
+    output_text = |Destination Error|. PERFORM output USING output_text.
     MESSAGE 'Destination Error' TYPE 'E'.
   ENDIF.
 
@@ -200,6 +214,7 @@ START-OF-SELECTION.
   rest_client->if_rest_client~get( ).
 
   IF ( rest_client->if_rest_client~get_status( ) <> 200 ).
+    output_text = |Fetch CSRF Token Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
     MESSAGE |Fetch CSRF Token Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
   ENDIF.
 
@@ -221,6 +236,7 @@ START-OF-SELECTION.
   rest_client->if_rest_client~post( upload_request ).
 
   IF ( rest_client->if_rest_client~get_status( ) <> 201 ).
+    output_text = |Upload Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
     MESSAGE |Upload Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
   ENDIF.
   DATA(response_upload) = /ui2/cl_json=>generate( json = rest_client->if_rest_client~get_response_entity( )->get_string_data( ) ).
@@ -243,6 +259,7 @@ START-OF-SELECTION.
   rest_client->if_rest_client~post( start_request ).
   IF ( rest_client->if_rest_client~get_status( ) <> 200 ).
     "DATA(error) = rest_client->if_rest_client~get_response_entity( )->get_string_data( ).
+    output_text = |Start Execution Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
     MESSAGE |Start Execution Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
   ENDIF.
   DATA(response_start) = /ui2/cl_json=>generate( json = rest_client->if_rest_client~get_response_entity( )->get_string_data( ) ).
@@ -259,6 +276,7 @@ START-OF-SELECTION.
     WAIT UP TO 1 SECONDS.
     rest_client->if_rest_client~get( ).
     IF ( rest_client->if_rest_client~get_status( ) <> 200 ).
+      output_text = |Check Execution Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
       MESSAGE |Check Execution Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
     ENDIF.
     DATA(response_check) = /ui2/cl_json=>generate( json = rest_client->if_rest_client~get_response_entity( )->get_string_data( ) ).
@@ -275,8 +293,9 @@ START-OF-SELECTION.
   cl_http_utility=>set_request_uri( request = http_client->request uri = |{ base_path }/files/{ file_id }/content| ).
   rest_client->if_rest_client~get( ).
   IF ( rest_client->if_rest_client~get_status( ) <> 200 ).
-    DATA(error) = rest_client->if_rest_client~get_response_entity( )->get_string_data( ).
-    MESSAGE |Start Execution Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
+    "DATA(error) = rest_client->if_rest_client~get_response_entity( )->get_string_data( ).
+    output_text = |Download File Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
+    MESSAGE |Download File Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
   ENDIF.
   DATA(zip_content) = rest_client->if_rest_client~get_response_entity( )->get_binary_data( ).
 
@@ -298,6 +317,7 @@ START-OF-SELECTION.
       file_name = replace( val = replace( val = <file_entry>-name sub = 'sth/' with = server_directory && dir_seperator ) sub = |{ external_id_in_project ALPHA = IN }| with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
       OPEN DATASET file_name FOR OUTPUT IN BINARY MODE MESSAGE mess.
       IF sy-subrc = 8.
+        output_text = |{ mess }|. PERFORM output USING output_text.
         MESSAGE mess TYPE 'E'.
       ENDIF.
       TRANSFER file_entry_content TO file_name.
@@ -351,6 +371,7 @@ START-OF-SELECTION.
            " Nothing can be done here...
         ENDIF.
       ENDLOOP.
+      output_text = |Import Failure: { textext_import_exception->get_text( ) }|. PERFORM output USING output_text.
       MESSAGE 'Import Failure' TYPE 'E'.
   ENDTRY.
 
@@ -361,6 +382,7 @@ START-OF-SELECTION.
   LOOP AT zip_file_names INTO file_name.
     DELETE DATASET file_name.
     IF sy-subrc <> 0.
+        output_text = |Delete File '{ file_name }' Failed|. PERFORM output USING output_text.
        MESSAGE |Delete File '{ file_name }' Failed| TYPE 'E'.
     ENDIF.
   ENDLOOP.
