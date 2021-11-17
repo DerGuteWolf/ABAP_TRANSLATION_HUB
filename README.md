@@ -16,7 +16,7 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
   - As Service No/Port use 443
   - No Path Prefix!
   - Proxy as Needed
-  - Basic Authentication with an User (normally a S-User) with Sufficient Priviledges in the Translation Hub Tenant
+  - Basic Authentication with an User (normally a S-User) with Sufficient Priviledges in the Translation Hub Tenant - If you already have a SAP Universal ID, pay attention to Note [3085908](https://launchpad.support.sap.com/#/notes/3085908) and use your account password and not your Universal ID password if they differ.
   - SSL set to Active
   - Use a Cert List which Contains an Appropriate Root CA for SAP BTP (formally known as SCP)
   - You might Want to Restrict the Usage of this Destination with the Help of an "Authorization for Destination" Entry, since it Contains Credentials
