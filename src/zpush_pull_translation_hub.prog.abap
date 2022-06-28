@@ -246,9 +246,13 @@ START-OF-SELECTION.
 
   output_text = |Translation Hub Upload Succesful|. PERFORM output USING output_text.
 
+* Step 6a: Wait 45 Seconds (as per call with SAP on 22.09.2021 and email from SAP on 06.10.2021)
+
+  WAIT UP TO 45 SECONDS.
+
 * Step 7: Start Translation and wait for finish
 
-  " Clear data from previous request, otherwise the following request will always fail
+  " Clear data from previous request, otherwise the following request will always fail (presumably because two posts in a row?)
   http_client->refresh_request( ).
   rest_client->if_rest_client~set_request_header( iv_name = 'X-CSRF-Token' iv_value = csrf_token ).
 
@@ -308,13 +312,30 @@ START-OF-SELECTION.
   DATA zip_file_names TYPE string_table.
   DATA zip_languages TYPE lxe_tt_lxeisolang.
 
+  " TODO Transl. Hub Equivalent to shYu still needs to be determined and used here and below
+  DATA(source_language_sth) = SWITCH #( source_language WHEN 'zhCN' THEN source_language WHEN 'zhTW' THEN source_language WHEN 'ptBR' THEN source_language WHEN 'shYu' THEN 'XXXX' ELSE source_language(2) ).
+
   DATA(zip) = NEW cl_abap_zip( ).
   zip->load( zip_content ).
   LOOP AT zip->files ASSIGNING FIELD-SYMBOL(<file_entry>).
     zip->get( EXPORTING name = <file_entry>-name IMPORTING content = DATA(file_entry_content) ).
-    DATA(language) = CONV lxeisolang( replace( val = replace( val = <file_entry>-name sub = |sth/{ source_language }_| with = '' ) sub = |_S_{ external_id_in_project ALPHA = IN }-00001.xlf| with = '' ) ).
+    DATA(language_sth) = CONV lxeisolang( replace( val = replace( val = <file_entry>-name sub = |sth/{ source_language_sth }_| with = '' ) sub = |_S_{ external_id_in_project ALPHA = IN }-00001.xlf| with = '' ) ).
+    DATA(language) = COND #( WHEN language_sth = 'XXXX' THEN 'shYu' ELSE VALUE #( target_languages[ table_line = language_sth ] OPTIONAL ) ).
+    IF language IS INITIAL.
+      CALL FUNCTION 'LXE_T002_CONVERT_2_TO_4'
+        EXPORTING
+          old_lang = CONV lxeisolang( to_upper( language_sth ) )
+        IMPORTING
+          new_lang = language
+        EXCEPTIONS
+          error    = 1.
+      " In case of error language will still be initial, thus correctly dealt with below
+    ENDIF.
     IF line_exists( target_languages[ table_line = language ] ).
-      file_name = replace( val = replace( val = <file_entry>-name sub = 'sth/' with = server_directory && dir_seperator ) sub = |{ external_id_in_project ALPHA = IN }| with = |{ export_id }| ). " sth/enUS_deDE_S_000001-00001.xlf
+      file_name = replace(
+        val = replace( val = <file_entry>-name sub = |sth/{ source_language_sth }_{ language_sth }| with = server_directory && dir_seperator && source_language && '_' && language )
+        sub = |{ external_id_in_project ALPHA = IN }| with = |{ export_id }|
+      ). " now sth/en_de_S_000001-00001.xlf from transl now but needs to be sth/enUS_deDE_S_000001-00001.xlf
       OPEN DATASET file_name FOR OUTPUT IN BINARY MODE MESSAGE mess.
       IF sy-subrc = 8.
         output_text = |{ mess }|. PERFORM output USING output_text.
@@ -325,7 +346,7 @@ START-OF-SELECTION.
       APPEND file_name TO zip_file_names.
       APPEND language TO zip_languages.
     ELSE.
-      output_text = |Language '{ language }' from Hub not in the Target Languages|. PERFORM output USING output_text.
+      output_text = |Language '{ language_sth }' from Transl. Hub not in the Target Languages (tried with '{ language }')|. PERFORM output USING output_text.
     ENDIF.
   ENDLOOP.
 
