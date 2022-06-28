@@ -21,7 +21,7 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
   - Use a Cert List which Contains an Appropriate Root CA for SAP BTP (formally known as SCP)
   - You might Want to Restrict the Usage of this Destination with the Help of an "Authorization for Destination" Entry, since it Contains Credentials
   - HTTP 1.1 and Compression for Both Directions should be Actived, All Cookies Need to be Accepted
-- Project ID: The <translation project ID> of a File Translation Project for ABAP xliff Style Properties Files
+- Project ID: The \<translation project ID> of a File Translation Project for ABAP xliff Style Properties Files
 - External ID: The externalization ID (Numeric Value) used in the Filename in the File Translation Project (Can be Choosen Arbitrarily, can be Used to Translate Texts from Different ABAP Systems in one Translation Project, you should Ensure each Combination of ABAP System and Object List Name has its Unique ID)
 
 ## Usage
