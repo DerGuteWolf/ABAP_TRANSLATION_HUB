@@ -24,6 +24,9 @@ A ABAP Report called zpush_pull_translation_hub which allows automated upload of
 - Project ID: The \<translation project ID> of a File Translation Project for ABAP xliff Style Properties Files
 - External ID: The externalization ID (Numeric Value) used in the Filename in the File Translation Project (Can be Choosen Arbitrarily, can be Used to Translate Texts from Different ABAP Systems in one Translation Project, you should Ensure each Combination of ABAP System and Object List Name has its Unique ID)
 
+## Prerequisites
+Note 3088809 (and its dependency note 3081862) needs to be installed.
+
 ## Usage
 Intended to be run as a job with a variant after a `RS_LXE_EVALUATION_SCHEDULE` job has finished his work (This job starts several more jobs, so unfortunatly "after" scheduling is not really possible, use some appropriate start time differences) but can also be run interactivly.
 
