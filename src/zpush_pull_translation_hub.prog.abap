@@ -133,6 +133,8 @@ START-OF-SELECTION.
               i_lines_per_file   = 0
               i_exp_ref_lang     = abap_false
               i_rlang            = ''
+              it_trreq           =  VALUE #( )
+              i_filter_keys      = abap_false
       )->export( ).
     CATCH cx_lxe_textext INTO DATA(textext_export_exception).
       output_text = |Export Failure { textext_export_exception->get_text( ) }|. PERFORM output USING output_text.
@@ -217,8 +219,14 @@ START-OF-SELECTION.
     output_text = |Fetch CSRF Token Error: { rest_client->if_rest_client~get_status( ) }, { rest_client->if_rest_client~get_response_entity( )->get_string_data( ) }|. PERFORM output USING output_text.
     MESSAGE |Fetch CSRF Token Error: { rest_client->if_rest_client~get_status( ) }| TYPE 'E'.
   ENDIF.
+  "DATA(headers) = rest_client->if_rest_client~get_response_headers( ).
+  "DATA(body) = rest_client->if_rest_client~get_response_entity( )->get_binary_data( ).
 
   DATA(csrf_token) = rest_client->if_rest_client~get_response_header( 'x-csrf-token' ).
+  IF csrf_token IS INITIAL.
+    output_text = |Fetch CSRF Token Error, no token received|. PERFORM output USING output_text.
+    MESSAGE |Fetch CSRF Token Error, no token received| TYPE 'E'.
+  ENDIF.
   rest_client->if_rest_client~set_request_header( iv_name = 'X-CSRF-Token' iv_value = csrf_token ).
 
   output_text = |Translation Hub Contact Succesful|. PERFORM output USING output_text.
